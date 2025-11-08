@@ -769,11 +769,17 @@ async function registerPowerups(plugin: ReactRNPlugin) {
 }
 
 /**
- * Registers the plugin's user-configurable settings.
+ * Registers all user-configurable plugin settings.
  *
- * Settings include spaced repetition parameters (initial interval, multiplier),
- * UI preferences (collapse queue top bar, hide CardPriority tag), and applies
- * conditional CSS based on the hideCardPriorityTag setting.
+ * Includes:
+ * - Spaced repetition: initial interval, multiplier
+ * - Default priorities: incremental rem, flashcards
+ * - Performance: mode selection, platform-specific optimizations (mobile/web)
+ * - UI preferences: collapse queue top bar, hide CardPriority tag, priority editor display
+ * - Display: priority shield visibility
+ * - Environment: RemNote instance selection (beta/www)
+ *
+ * Also applies conditional CSS to hide CardPriority tag if enabled.
  */
 async function registerSettings(plugin: ReactRNPlugin) {
   const hideCardPriorityTagId = 'hide-card-priority-tag';
@@ -811,6 +817,114 @@ async function registerSettings(plugin: ReactRNPlugin) {
     description:
       'If enabled, this will hide the "CardPriority" powerup tag in the editor to reduce clutter. You can still set priority with (Alt+P). After changing this setting, reload RemNote.',
     defaultValue: true,
+  });
+
+  plugin.settings.registerNumberSetting({
+    id: defaultPriorityId,
+    title: 'Default Priority',
+    description: 'Sets the default priority for new incremental rem (0-100, Lower = more important). Default: 10',
+    defaultValue: 10,
+    validators: [
+      { type: "int" as const },
+      { type: "gte" as const, arg: 0 },
+      { type: "lte" as const, arg: 100 },
+    ]
+  });
+
+  plugin.settings.registerNumberSetting({
+    id: 'defaultCardPriority',
+    title: 'Default Card Priority',
+    description: 'Default priority for flashcards without inherited priority (0-100, Lower = more important).  Default: 50',
+    defaultValue: 50,
+    validators: [
+      { type: "int" as const },
+      { type: "gte" as const, arg: 0 },
+      { type: "lte" as const, arg: 100 },
+    ]
+  });
+
+  plugin.settings.registerDropdownSetting({
+    id: 'performanceMode',
+    title: 'Performance Mode',
+    description: 'Choose performance level. "Light" is recommended for web/mobile. "Full" can bring significant computational overhead (best used in the Desktop App); it will also automatically start a pretagging process of all flashcards, that can make RemNote slow untill everything is tagged/synced/wired/cached!',
+    defaultValue: 'light',
+    options: [
+      {
+        key: 'full',
+        label: 'Full (All Features, High Resource Use)',
+        value: 'full'
+      },
+      {
+        key: 'light',
+        label: 'Light (Faster, No Relative Priority/Shield)',
+        value: 'light'
+      }
+    ]
+  });
+
+  plugin.settings.registerBooleanSetting({
+    id: alwaysUseLightModeOnMobileId,
+    title: 'Always use Light Mode on Mobile',
+    description: 'Automatically switch to Light performance mode when using RemNote on iOS or Android. This prevents crashes and improves performance on mobile devices. Recommended: enabled.',
+    defaultValue: true,
+  });
+
+  plugin.settings.registerBooleanSetting({
+    id: alwaysUseLightModeOnWebId,
+    title: 'Always use Light Mode on Web Browser',
+    description: 'Automatically switch to Light performance mode when using RemNote on the web browser. Full Mode can be slow or unstable on web browsers. Recommended: enabled.',
+    defaultValue: true,
+  });
+
+  plugin.settings.registerBooleanSetting({
+    id: displayPriorityShieldId,
+    title: 'Display Priority Shield in Queue',
+    description: 'If enabled, shows a real-time status of your highest-priority due items in the queue (below the Answer Buttons for IncRems, and in the card priority widget under the flashcard in case of regular cards).',
+    defaultValue: true,
+  });
+
+  plugin.settings.registerDropdownSetting({
+    id: 'priorityEditorDisplayMode',
+    title: 'Priority Editor in Editor',
+    description:
+      'Controls when to show the priority widget in the right-hand margin of the editor.',
+    defaultValue: 'all',
+    options: [
+      {
+        key: 'all',
+        label: 'Show for IncRem and Cards',
+        value: 'all',
+      },
+      {
+        key: 'incRemOnly',
+        label: 'Show only for IncRem',
+        value: 'incRemOnly',
+      },
+      {
+        key: 'disable',
+        label: 'Disable',
+        value: 'disable',
+      },
+    ],
+  });
+
+  plugin.settings.registerDropdownSetting({
+    id: remnoteEnvironmentId,
+    title: 'RemNote Environment',
+    description: 'Choose which RemNote environment to open documents in (beta.remnote.com or www.remnote.com)',
+    defaultValue: 'www',
+    options: [
+      {
+        key: 'beta',
+        label: 'Beta (beta.remnote.com)',
+        value: 'beta'
+      },
+      {
+        key: 'www',
+        label: 'Regular (www.remnote.com)',
+        value: 'www'
+      }
+    ]
   });
 
   // Apply the CSS hide setting on startup
@@ -919,125 +1033,6 @@ async function onActivate(plugin: ReactRNPlugin) {
 
   await registerPowerups(plugin);
   await registerSettings(plugin);
-  
-  // Register the new setting as a number input, as sliders are not supported.
-  plugin.settings.registerNumberSetting({
-    id: defaultPriorityId,
-    title: 'Default Priority',
-    description: 'Sets the default priority for new incremental rem (0-100, Lower = more important). Default: 10',
-    defaultValue: 10,
-    // Use validators to enforce the range and type.
-    validators: [
-      {
-        type: "int" as const // Ensures the input is a whole number
-      },
-      {
-        type: "gte" as const, // "Greater than or equal to"
-        arg: 0,
-      },
-      {
-        type: "lte" as const, // "Less than or equal to"
-        arg: 100,
-      },
-    ]
-  });
-
-  plugin.settings.registerNumberSetting({
-    id: 'defaultCardPriority',
-    title: 'Default Card Priority',
-    description: 'Default priority for flashcards without inherited priority (0-100, Lower = more important).  Default: 50',
-    defaultValue: 50,
-    validators: [
-      { type: "int" as const },
-      { type: "gte" as const, arg: 0 },
-      { type: "lte" as const, arg: 100 },
-    ]
-  });
-
-  plugin.settings.registerDropdownSetting({
-    id: 'performanceMode',
-    title: 'Performance Mode',
-    description: 'Choose performance level. "Light" is recommended for web/mobile. "Full" can bring significant computational overhead (best used in the Desktop App); it will also automatically start a pretagging process of all flashcards, that can make RemNote slow untill everything is tagged/synced/wired/cached!',
-    defaultValue: 'light',
-    options: [
-      {
-        key: 'full',
-        label: 'Full (All Features, High Resource Use)',
-        value: 'full'
-      },
-      {
-        key: 'light',
-        label: 'Light (Faster, No Relative Priority/Shield)',
-        value: 'light'
-      }
-    ]
-  });
-
-  plugin.settings.registerBooleanSetting({
-    id: alwaysUseLightModeOnMobileId,
-    title: 'Always use Light Mode on Mobile',
-    description: 'Automatically switch to Light performance mode when using RemNote on iOS or Android. This prevents crashes and improves performance on mobile devices. Recommended: enabled.',
-    defaultValue: true,
-  });
-
-  plugin.settings.registerBooleanSetting({
-    id: alwaysUseLightModeOnWebId,
-    title: 'Always use Light Mode on Web Browser',
-    description: 'Automatically switch to Light performance mode when using RemNote on the web browser. Full Mode can be slow or unstable on web browsers. Recommended: enabled.',
-    defaultValue: true,
-  });
-  
-  plugin.settings.registerBooleanSetting({
-    id: displayPriorityShieldId,
-    title: 'Display Priority Shield in Queue',
-    description: 'If enabled, shows a real-time status of your highest-priority due items in the queue (below the Answer Buttons for IncRems, and in the card priority widget under the flashcard in case of regular cards).',
-    defaultValue: true,
-  });
-
-  plugin.settings.registerDropdownSetting({
-    id: 'priorityEditorDisplayMode', // ID for the new setting
-    title: 'Priority Editor in Editor',
-    description:
-      'Controls when to show the priority widget in the right-hand margin of the editor.',
-    defaultValue: 'all',
-    options: [
-      {
-        key: 'all',
-        label: 'Show for IncRem and Cards',
-        value: 'all',
-      },
-      {
-        key: 'incRemOnly',
-        label: 'Show only for IncRem',
-        value: 'incRemOnly',
-      },
-      {
-        key: 'disable',
-        label: 'Disable',
-        value: 'disable',
-      },
-    ],
-  });
-
-  plugin.settings.registerDropdownSetting({
-    id: remnoteEnvironmentId,
-    title: 'RemNote Environment',
-    description: 'Choose which RemNote environment to open documents in (beta.remnote.com or www.remnote.com)',
-    defaultValue: 'www',
-    options: [
-      { 
-        key: 'beta', 
-        label: 'Beta (beta.remnote.com)',
-        value: 'beta'
-      },
-      { 
-        key: 'www', 
-        label: 'Regular (www.remnote.com)',
-        value: 'www'
-      }
-    ]
-  });
-
 
   // Note: doesn't handle rem just tagged with incremental rem powerup because they don't have powerup slots yet
   // so added special handling in initIncrementalRem
