@@ -160,7 +160,7 @@ export async function registerSettings(plugin: ReactRNPlugin) {
   plugin.settings.registerDropdownSetting({
     id: 'performanceMode',
     title: 'Performance Mode',
-    description: 'Choose performance level. "Light" is recommended for web/mobile. "Full" can bring significant computational overhead (best used in the Desktop App); it will also automatically start a pretagging process of all flashcards, that can make RemNote slow untill everything is tagged/synced/wired/cached!',
+    description: 'Choose performance level. "Light" is recommended for web/mobile. "Full" can bring significant computational overhead (best used in the Desktop App); it will also automatically start a pretagging process of all flashcards, that can make RemNote slow until everything is tagged/synced/wired/cached!',
     defaultValue: 'light',
     options: [
       {
