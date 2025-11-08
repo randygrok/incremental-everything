@@ -704,7 +704,13 @@ async function extractOriginalScopeFromPriorityReview(
   return null;
 }
 
-
+/**
+ * Registers the plugin's powerups with RemNote.
+ *
+ * Creates two powerups:
+ * - Incremental: Main powerup for incremental reading with Priority, Next Rep Date, and History slots
+ * - CardPriority: Powerup for flashcard prioritization with priority, source, and timestamp tracking
+ */
 async function registerPowerups(plugin: ReactRNPlugin) {
   await plugin.app.registerPowerup({
     name: 'Incremental',
@@ -762,6 +768,13 @@ async function registerPowerups(plugin: ReactRNPlugin) {
   });
 }
 
+/**
+ * Registers the plugin's user-configurable settings.
+ *
+ * Settings include spaced repetition parameters (initial interval, multiplier),
+ * UI preferences (collapse queue top bar, hide CardPriority tag), and applies
+ * conditional CSS based on the hideCardPriorityTag setting.
+ */
 async function registerSettings(plugin: ReactRNPlugin) {
   const hideCardPriorityTagId = 'hide-card-priority-tag';
   const HIDE_CARD_PRIORITY_CSS = `
