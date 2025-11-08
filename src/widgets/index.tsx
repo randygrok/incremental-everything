@@ -9,7 +9,6 @@ import {
   RNPlugin,
   SelectionType,
   SpecialPluginCallback,
-  StorageEvents,
   WidgetLocation,
 } from '@remnote/plugin-sdk';
 import '../style.css';
@@ -27,11 +26,7 @@ import {
   queueCounterId,
   hideIncEverythingId,
   nextRepCommandId,
-  shouldHideIncEverythingKey,
-  collapseTopBarKey,
   queueLayoutFixId,
-  incrementalQueueActiveKey,
-  activeHighlightIdKey,
   currentScopeRemIdsKey,
   defaultPriorityId,
   seenRemInSessionKey,
@@ -46,15 +41,11 @@ import {
   pageRangeWidgetId,
   noIncRemTimerKey,
   noIncRemMenuItemId,
-  noIncRemTimerWidgetId,
   currentIncRemKey,
   queueSessionCacheKey,
   priorityCalcScopeRemIdsKey,
   alwaysUseLightModeOnMobileId,
-  isMobileDeviceKey,
-  alwaysUseLightModeOnWebId,
-  isWebPlatformKey,
-  lastDetectedPlatformKey
+  alwaysUseLightModeOnWebId
 } from '../lib/consts';
 import * as _ from 'remeda';
 import { getSortingRandomness, getCardsPerRem } from '../lib/sorting';
@@ -78,10 +69,9 @@ import {
   getFriendlyOSName,
   getFriendlyPlatformName   // NEW
 } from '../lib/mobileUtils';
-import { 
-  autoAssignCardPriority, 
-  getCardPriority, 
-  getDueCardsWithPriorities, 
+import {
+  autoAssignCardPriority,
+  getCardPriority,
   CardPriorityInfo,
   setCardPriority,
   calculateRelativeCardPriority,
